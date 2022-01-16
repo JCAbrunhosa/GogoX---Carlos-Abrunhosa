@@ -13,7 +13,7 @@ public class ConnectToDatabase {
         try{
             Class.forName("com.mysql.jdbc.Driver");
             con= DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/Games","root","xxxxxx");
+                    "jdbc:mysql://localhost:3306/Games","root","xxxxxxxx");
         }catch (Exception e){
             System.out.println("Error connecting to Database: " + e);
         }
@@ -29,7 +29,7 @@ public class ConnectToDatabase {
         preparedStmt.setString (2, String.valueOf(participant.getUUID()));
         preparedStmt.setString (3, participant.getFirstName());
         preparedStmt.setString(4, participant.getLastName());
-        preparedStmt.setString(5, participant.getKey());
+        preparedStmt.setString(5, participant.getTicket());
 
         preparedStmt.execute();
     }
@@ -70,7 +70,7 @@ public class ConnectToDatabase {
         while (rs.next()) {
             JSONObject participantObject = new JSONObject();
             int id = rs.getInt("draw_id");
-            participantObject.append(String.valueOf(id), participant.getKey());
+            participantObject.append(String.valueOf(id), participant.getTicket());
             returnArray.put(participantObject);
         }
 

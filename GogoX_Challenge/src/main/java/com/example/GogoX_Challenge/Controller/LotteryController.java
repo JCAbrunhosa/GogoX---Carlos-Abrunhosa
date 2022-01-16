@@ -3,10 +3,7 @@ package com.example.GogoX_Challenge.Controller;
 import com.example.GogoX_Challenge.Model.LotteryHandler;
 import com.example.GogoX_Challenge.Objects.Participant;
 import org.json.JSONException;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
 
@@ -34,5 +31,13 @@ public class LotteryController {
     public String checkWonDraws(@RequestBody Participant participant) throws SQLException, JSONException {
         return model.checkWonDraws(participant).toString();
     }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/enter_draw/results")
+    @ResponseBody
+    public String sendBackResult()  {
+        return model.returnDrawWinner();
+    }
+
+
 
 }

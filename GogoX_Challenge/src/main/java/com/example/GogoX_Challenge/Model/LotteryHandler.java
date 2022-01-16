@@ -1,5 +1,6 @@
 package com.example.GogoX_Challenge.Model;
 
+import com.example.GogoX_Challenge.Controller.LotteryController;
 import com.example.GogoX_Challenge.Objects.Participant;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -11,14 +12,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LotteryHandler {
 
     ConnectToDatabase connectToDatabase = new ConnectToDatabase();
-    static ConcurrentHashMap<Integer, Participant> lotteryDraw = new ConcurrentHashMap<>();
+    static ConcurrentHashMap<String, Participant> lotteryDraw = new ConcurrentHashMap<>();
     static ArrayList<Integer> participantsIds = new ArrayList<>();
     Timer drawTimer = new Timer();
     Timer inBetweenDrawsTimer = new Timer();
     static int drawNumber = 0;
     boolean hasGameStarted = false;
+    boolean hasGameEnded = false;
     int lotteryPrize = 1000;
     String winningKey;
+
+    LotteryController controller = new LotteryController();
 
     //Constructor
     public LotteryHandler(){
@@ -36,9 +40,8 @@ public class LotteryHandler {
 
         if(!hasGameStarted){
             return "The draw hasn't started yet. Wait a few seconds to enter the draw.";
-        }else if(!participantsIds.contains(participant.getUUID())){
-            winnerNotWinner(participant);
-            participantsIds.add(participant.getUUID());
+        }else if(!lotteryDraw.containsKey(participant.getTicket())){
+            lotteryDraw.put(participant.getTicket(),participant);
             System.out.println(participant.getLastName() + " has successfully entered the draw!");
             return "Successfully entered the draw!";
         }
@@ -50,24 +53,15 @@ public class LotteryHandler {
     //Also adds the winner details to the Games database
     public String getDrawWinner() throws SQLException {
 
-        if(lotteryDraw.size() >0){
-            int i = 0;
+        if(lotteryDraw.size() >0 && lotteryDraw.containsKey(winningKey)){
             String toReturn = "";
-            for (int uuid : lotteryDraw.keySet()) {
-                Participant participant = lotteryDraw.get(uuid);
-                connectToDatabase.addNewEntry(drawNumber,participant);
-                i++;
-            }
 
-            if(i>1)
-                toReturn = "Many participants have won draw number " + drawNumber + ", with a total prize of " + lotteryPrize/i + " HKD each.";
-            else
-                toReturn = "One participant has own draw number " + drawNumber + ", with a total prize of " + lotteryPrize + "HKD.";
+            toReturn = "One participant has won draw number " + drawNumber + ", with a total prize of " + lotteryPrize + "HKD.";
             lotteryPrize=1000;
             return toReturn;
         }
         lotteryPrize += 1000;
-        return "Now one has won the lottery prize this draw. Prize pool has been increased by 1000 HKD. Now total prize pool is " + lotteryPrize + ".";
+        return "No one has won the lottery prize this draw. Prize pool has been increased by 1000 HKD. Now total prize pool is " + lotteryPrize + ".";
     }
 
     //This method restarts the game as all its variables before accepting new ones.
@@ -78,19 +72,20 @@ public class LotteryHandler {
         participantsIds = new ArrayList<>();
     }
 
-    private void winnerNotWinner(Participant participant){
-        if(participant.getKey().matches(winningKey))
-            lotteryDraw.put(participant.getUUID(),participant);
-    }
-
     //Method to check if any current draw is going on - Returns response and time left for the draw (if currently under way).
     public String getCurrentDrawAndTimeLeft(){
 
-        if(hasGameStarted)
+        if(hasGameEnded)
             return ("Draw number "+drawNumber+" is currently underway, with " + drawTimer.toString()+ " seconds left.");
 
         return "New draw will start very soon.";
 
+    }
+
+    public String returnDrawWinner(){
+        if(!hasGameStarted)
+            return  "Ticket Number " + winningKey + " was the winner of draw number " + drawNumber + ".";
+        return "Draw is still on going. Refresh the page.";
     }
 
     //Timer for each draw. At the end, it restarts the game and gives the signal to return the winner.
@@ -107,6 +102,7 @@ public class LotteryHandler {
             System.out.println("Next draw will start in 10 seconds.");
             inBetweenDrawsTimer.schedule(new inBetweenDrawsTimer(), 10 * 1000);
             hasGameStarted=false;
+            hasGameEnded=true;
             restartDraw();
         }
     }
@@ -119,6 +115,7 @@ public class LotteryHandler {
             drawTimer.schedule(new DrawTimer(), 20 * 1000);
             drawNumber++;
             hasGameStarted=true;
+            hasGameEnded=false;
             System.out.println();
             System.out.println("Draw number " + drawNumber + " has started!");
             Random key = new Random();

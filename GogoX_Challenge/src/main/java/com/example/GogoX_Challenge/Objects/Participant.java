@@ -4,13 +4,13 @@ public class Participant {
 
     private String firstName;
     private String lastName;
-    private String key;
+    private String ticket;
     private int uuid;
 
-    public Participant(String firstName, String lastName, String key, int uuid){
+    public Participant(String firstName, String lastName, String ticket, int uuid){
         this.firstName=firstName;
         this.lastName=lastName;
-        this.key=key;
+        this.ticket=ticket;
         this.uuid=uuid;
     }
 
@@ -22,8 +22,8 @@ public class Participant {
         return this.lastName;
     }
 
-    public String getKey(){
-        return this.key;
+    public String getTicket(){
+        return this.ticket;
     }
 
     public int getUUID(){return this.uuid;}
